@@ -1,0 +1,37 @@
+services:
+  web:
+    image: code-reviewer:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: code-reviewer-prod
+    entrypoint: ["/entrypoint.prod.sh"]
+    ports:
+      - "${HOST_IP:-127.0.0.1}:8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+        compress: "true"
+    env_file:
+      - ../.env
+    environment:
+      - TZ=Asia/Tehran
+      - PORT=8080
+      - GIN_MODE=release
+    networks:
+      - devopsio
+      - test-network
+    restart: unless-stopped
+    dns:
+      - 194.225.152.12
+      - 194.225.152.10
+
+networks:
+  devopsio:
+    name: devopsio
+    external: true
+  test-network:
+    name: test-network
+    external: true

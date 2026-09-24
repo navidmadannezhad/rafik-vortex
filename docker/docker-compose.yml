@@ -1,0 +1,22 @@
+services:
+  web:
+    image: code-reviewer:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: code-reviewer
+    entrypoint: ["/entrypoint.sh"]
+    ports:
+      - "${HOST_IP:-127.0.0.1}:8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - ../.env
+    environment:
+      - TZ=Asia/Tehran
+      - PORT=8080
+      - GIN_MODE=debug
+    restart: unless-stopped
