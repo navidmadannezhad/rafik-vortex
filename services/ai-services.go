@@ -10,36 +10,50 @@ import (
 	"net/http"
 )
 
-var aiDefaultConfiguration = models.AiConfiuguration{
-	Model: configs.ACTIVE_AI_MODEL.Name,
-	Options: map[string]interface{}{
-		"temperature": 0.2,
-		"num_predict": 256,
-	},
+var defaultTemperature = 0.2
+var aiDefaultConfiguration = models.GetModelReviewPayload{
+	Model:       configs.ACTIVE_AI_MODEL.Name,
+	Temperature: &defaultTemperature,
 }
 
 func GetModelReviewMutation(options models.GetModelReviewMutationOptions) (*http.Response, error) {
-	modelUrl := utils.GetEnv("MODEL_URL", "http://127.0.0.1:11434")
-	url := fmt.Sprintf("%v/api/generate", modelUrl)
+	apiKey := utils.GetEnv("OPENROUTER_API_KEY", "http://127.0.0.1:11434")
 
-	payload := models.AiConfiuguration{
-		Model:   aiDefaultConfiguration.Model,
-		Options: aiDefaultConfiguration.Options,
-		Prompt:  utils.GetReviewPromptFrom(options.Files),
-		System:  configs.REVIEW_PROMPT,
+	payload := models.GetModelReviewPayload{
+		Model:       aiDefaultConfiguration.Model,
+		Temperature: aiDefaultConfiguration.Temperature,
+		Messages: []models.AIMessage{
+			{
+				Role:    "user",
+				Content: utils.GetReviewPromptFrom(options.Files),
+			},
+			{
+				Role:    "system",
+				Content: configs.REVIEW_PROMPT,
+			},
+		},
+		Reasoning: map[string]interface{}{
+			"effort": "none",
+		},
 	}
 	jsonPayload, err := json.Marshal(payload)
+	fmt.Print(string(jsonPayload))
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonPayload))
+	req, err := http.NewRequest("POST", "https://openrouter.ai/api/v1/chat/completions", bytes.NewReader(jsonPayload))
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Authorization", "Bearer "+apiKey)
+	req.Header.Add("Content-Type", "application/json")
 	response, err := HttpClient.Do(req)
 	if err != nil {
 		return &http.Response{}, err
+	}
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("Error Code %v", response.Status)
 	}
 	return response, nil
 }

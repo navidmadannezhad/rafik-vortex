@@ -8,6 +8,7 @@ import (
 
 func attachRoutes(engine *gin.Engine) {
 	engine.POST("/api/v1/webhook", controller.RequestPRReview)
+	engine.POST("/api/v1/request-ai-instructions", controller.RequestAIInstructions)
 }
 
 func RunRouter() {

@@ -14,9 +14,14 @@ GIT_URL=
 
 GIT_TOKEN=
 
-// -- This is the url of your OLLAMA instance. For example: http://127.0.0.1:11434
+// -- Your OpenRouter API key. Create one at https://openrouter.ai/keys
 
-MODEL_URL=
+OPENROUTER_API_KEY=
+
+// -- The git repo that stores AI instruction rules and skills
+
+LIBRARY_REPO_NAME=
+LIBRARY_REPO_OWNER=
 
 
 Fill the env file and then run the system using:

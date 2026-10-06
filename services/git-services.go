@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"net/http"
 )
@@ -27,7 +28,6 @@ func GetPullRequestDiffQuery(options models.GitDiffApiUrlOptions) (*http.Respons
 }
 
 func PostReviewToGitMutation(options models.PostReviewToGitMutationOptions) (*http.Response, error) {
-
 	comments := options.Comments
 
 	hasCritical := utils.CommentListHasCritical(comments)
@@ -79,6 +79,100 @@ func PostReviewToGitMutation(options models.PostReviewToGitMutationOptions) (*ht
 	}
 	url := utils.PostReviewApiUrl(postReviewApiUrlOptions)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonPayload))
+	if err != nil {
+		return nil, err
+	}
+	gitToken := utils.GetEnv("GIT_TOKEN", "")
+	req.Header.Add("Authorization", fmt.Sprintf("token %v", gitToken))
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Set("Content-Type", "application/json")
+	response, err := HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func GetGitFileContentQuery(options models.GetGitFileContentQueryOptions) (*http.Response, error) {
+	getGitFileContentApiUrlOptions := models.GetGitFileContentApiUrlOptions{
+		OwnerName:      options.OwnerName,
+		RepositoryName: options.RepositoryName,
+		FilePath:       options.FilePath,
+	}
+	url := utils.GetGitFileContentApiUrl(getGitFileContentApiUrlOptions)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	gitToken := utils.GetEnv("GIT_TOKEN", "")
+	req.Header.Add("Authorization", fmt.Sprintf("token %v", gitToken))
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Set("Content-Type", "application/json")
+	response, err := HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func GetProjectDirectoryListQuery(options models.GetProjectDirectoryListQueryOptions) (*http.Response, error) {
+	url := utils.GetProjectDirectoryListApiUrl(options)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	gitToken := utils.GetEnv("GIT_TOKEN", "")
+	req.Header.Add("Authorization", fmt.Sprintf("token %v", gitToken))
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Set("Content-Type", "application/json")
+	response, err := HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func CreateFileInRepoMutation(options models.CreateFileInRepoMutationOptions) (*http.Response, error) {
+	apiUrlPayload := models.CreateFileInRepoApiUrlMutationOptions{
+		OwnerName:      options.OwnerName,
+		FilePath:       options.FilePath,
+		RepositoryName: options.RepositoryName,
+	}
+	url := utils.CreateFileInRepoApiUrl(apiUrlPayload)
+
+	marshaledPayload, err := json.Marshal(options.Body)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewReader(marshaledPayload))
+	if err != nil {
+		return nil, err
+	}
+	gitToken := utils.GetEnv("GIT_TOKEN", "")
+	req.Header.Add("Authorization", fmt.Sprintf("token %v", gitToken))
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Set("Content-Type", "application/json")
+	response, err := HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func ModifyFilesInRepoMutation(options models.ModifyFilesInRepoMutationOptions) (*http.Response, error) {
+	apiUrlPayload := models.ModifyFilesInRepoApiUrlOptions{
+		OwnerName:      options.OwnerName,
+		RepositoryName: options.RepositoryName,
+	}
+	url := utils.ModifyFilesInRepoApiUrl(apiUrlPayload)
+	marshaledPayload, err := json.Marshal(options.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Print("url", url)
+	log.Print("payload", string(marshaledPayload))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(marshaledPayload))
 	if err != nil {
 		return nil, err
 	}

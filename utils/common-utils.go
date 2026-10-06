@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"encoding/base64"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ResolveErrorMessage(msg string) gin.H {
+	log.Printf("ERROR: %v", msg)
 	return gin.H{
 		"error": msg,
 	}
@@ -24,4 +27,8 @@ func GetEnv(key string, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+func GetBased64From(content string) string {
+	return base64.StdEncoding.EncodeToString([]byte(content))
 }

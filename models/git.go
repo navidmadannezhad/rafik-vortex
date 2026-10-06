@@ -5,7 +5,7 @@ import (
 )
 
 // WebhookPayload represents the top-level webhook event payload.
-type WebhookPayload struct {
+type PRWebhookPayload struct {
 	Action            string       `json:"action"`
 	CommitID          string       `json:"commit_id"`
 	Number            int          `json:"number"`
@@ -14,6 +14,56 @@ type WebhookPayload struct {
 	RequestedReviewer *User        `json:"requested_reviewer"`
 	Review            interface{}  `json:"review"`
 	Sender            User         `json:"sender"`
+}
+
+type RepoCreateWebhookPayload struct {
+	Action       string     `json:"action"`
+	Organization User       `json:"organization"`
+	Repository   Repository `json:"repository"`
+	Sender       User       `json:"sender"`
+}
+
+type RepoPushWebhookPayload struct {
+	Ref          string     `json:"ref"`
+	Before       string     `json:"before"`
+	After        string     `json:"after"`
+	CompareUrl   string     `json:"compare_url"`
+	Commits      []Commit   `json:"commits"`
+	TotalCommits int        `json:"total_commits"`
+	HeadCommit   Commit     `json:"head_commit"`
+	Repository   Repository `json:"repository"`
+	Pusher       User       `json:"pusher"`
+	Sender       User       `json:"sender"`
+}
+
+type CommitUser struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+type Commit struct {
+	ID           string     `json:"id"`
+	Message      string     `json:"message"`
+	URL          string     `json:"url"`
+	Author       CommitUser `json:"author"`
+	Committer    CommitUser `json:"committer"`
+	Verification any        `json:"verification"`
+	Timestamp    string     `json:"timestamp"`
+	Added        []string   `json:"added"`
+	Removed      []string   `json:"removed"`
+	Modified     []string   `json:"modified"`
+}
+
+type CommitFile struct {
+	FileName string `json:"filename"`
+	Status   string `json:"status"`
+}
+
+type Stat struct {
+	Additions int `json:"additions"`
+	Deletions int `json:"deletions"`
+	Total     int `json:"total"`
 }
 
 // PullRequest represents a pull request object.
@@ -213,7 +263,152 @@ type PostReviewApiUrlOptions struct {
 	PullRequestNumber int
 }
 
+type GetGitFileContentApiUrlOptions struct {
+	FilePath       string
+	OwnerName      string
+	RepositoryName string
+}
+
 type FileDiff struct {
 	Path  string
 	Hunks string
+}
+
+type RepoTechnology string
+
+const (
+	React   RepoTechnology = "react"
+	Vue     RepoTechnology = "vue"
+	Django  RepoTechnology = "django"
+	FastAPI RepoTechnology = "fastapi"
+	Nest    RepoTechnology = "nest"
+	Gin     RepoTechnology = "gin"
+	Php     RepoTechnology = "php"
+	Unknown RepoTechnology = "unknown"
+)
+
+type GetGitFileContentQueryOptions struct {
+	FilePath       string `json:"file_path"`
+	OwnerName      string `json:"owner"`
+	RepositoryName string `json:"repo"`
+}
+
+type GetProjectDirectoryListQueryOptions struct {
+	OwnerName      string
+	RepositoryName string
+	RootPath       *string
+}
+
+type Author struct {
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
+type Committer Author
+
+type Dates struct {
+	Author    string
+	Committer string
+}
+
+type CreateFileInRepoMutationBody struct {
+	Author    Author    `json:"author"`
+	Branch    string    `json:"branch"`
+	Committer Committer `json:"committer"`
+	Content   string    `json:"content"`
+	Dates     Dates     `json:"dates"`
+	Message   string    `json:"message"`
+	NewBranch string    `json:"new_branch"`
+	SignOff   bool      `json:"signoff"`
+}
+
+type CreateFileInRepoMutationOptions struct {
+	OwnerName      string                       `json:"owner"`
+	RepositoryName string                       `json:"repo"`
+	FilePath       string                       `json:"filepath"`
+	Body           CreateFileInRepoMutationBody `json:"body"`
+}
+
+type CreateFileInRepoApiUrlMutationOptions struct {
+	OwnerName      string
+	RepositoryName string
+	FilePath       string
+}
+
+type Operation string
+
+const (
+	Create Operation = "create"
+	Update Operation = "update"
+	Delete Operation = "delete"
+	Rename Operation = "rename"
+	Upload Operation = "upload"
+)
+
+type ChangeFileOperation struct {
+	Content   string    `json:"content"`
+	FromPath  string    `json:"from_path,omitempty"`
+	Operation Operation `json:"operation"`
+	Path      string    `json:"path"`
+	Sha       string    `json:"sha,omitempty"`
+}
+
+type ModifyFilesInRepoApiUrlOptions struct {
+	OwnerName      string `json:"owner"`
+	RepositoryName string `json:"repo"`
+}
+
+type ModifyFilesInRepoMutationOptions struct {
+	OwnerName      string                `json:"owner"`
+	RepositoryName string                `json:"repo"`
+	Body           ModifyFilesInRepoBody `json:"body"`
+}
+
+type ModifyFilesInRepoBody struct {
+	Author    *Author               `json:"author,omitempty"`
+	Branch    string                `json:"branch"`
+	Committer *Committer            `json:"committer,omitempty"`
+	Files     []ChangeFileOperation `json:"files"`
+	Dates     *Dates                `json:"dates,omitempty"`
+	Message   string                `json:"message,omitempty"`
+	NewBranch string                `json:"new_branch,omitempty"`
+	SignOff   bool                  `json:"signoff,omitempty"`
+}
+
+type GitDirectory struct {
+	Name              string `json:"name"`
+	Path              string `json:"path"`
+	Sha               string `json:"sha"`
+	LastCommitSha     string `json:"last_commit_sha"`
+	LastCommitterDate string `json:"last_committer_date"`
+	LastAuthorDate    string `json:"last_author_date"`
+	Type              string `json:"type"`
+	Size              int64  `json:"size"`
+	Encoding          string `json:"encoding"`
+	Content           string `json:"content"`
+	Target            string `json:"target"`
+	Url               string `json:"url"`
+	HtmlUrl           string `json:"html_url"`
+	GitUrl            string `json:"git_url"`
+	DownloadUrl       string `json:"download_url"`
+	SubmoduleGitUrl   string `json:"submodule_git_url"`
+	Links             Links  `json:"_links"`
+}
+
+type Links struct {
+	Self string `json:"self"`
+	Git  string `json:"git"`
+	Html string `json:"html"`
+}
+
+type GetProjectDirectoryListQueryResponse struct {
+	DirContents  []GitDirectory `json:"dir_contents"`
+	FileContents GitFileMeta    `json:"file_contents"`
+}
+
+type GitFileMeta struct {
+	// this struct has more field in real life, for now we just need these
+	Content string `json:"content"`
+	Sha     string `json:"sha"`
+	HtmlUrl string `json:"html_url"`
 }

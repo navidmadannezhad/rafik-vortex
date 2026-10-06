@@ -11,6 +11,10 @@ var aiModels = map[string]models.AiModelProperties{
 		Name:                   "smollm2",
 		ModelMaximumCharacters: 8192,
 	},
+	"deepseek/deepseek-v4-flash-0731": {
+		Name:                   "deepseek/deepseek-v4-flash-0731",
+		ModelMaximumCharacters: 8192,
+	},
 }
 
-var ACTIVE_AI_MODEL = aiModels["smollm2"]
+var ACTIVE_AI_MODEL = aiModels["deepseek/deepseek-v4-flash-0731"]
